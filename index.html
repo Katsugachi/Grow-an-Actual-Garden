@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Grow A Garden : Real Life Edition</title>
+  <title>Grow Mastery: Potatoes, Cauliflower, Broccoli, Radish, Lettuce</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -585,3 +585,81 @@
       const lvl = ps.level;
       const tagLabel = ["Seed","Establish","Grow","Bulk/Head","Harvest"][lvl-1];
       levelTag.textContent = `Level ${lvl}: ${tagLabel}`;
+      // buttons
+      advanceBtn.disabled = (lvl>=5);
+      progressHint.textContent = `${countDone(currentKey)}/${p.steps.length} steps complete`;
+      updateOverall();
+    }
+
+    function updateValue(){
+      const ps = state[currentKey];
+      const price = parseFloat(priceInput.value||0);
+      const qty = parseFloat(yieldInput.value||0);
+      const val = Math.max(0, price*qty);
+      valueOut.textContent = isFinite(val) ? ' + val.toFixed(2) : '$0.00';
+      // Persist units and numbers
+      ps.price = price;
+      ps.unit = unitInput.value;
+      ps.yld = qty;
+      ps.yUnit = yieldUnit.value;
+      saveState();
+    }
+
+    // Simple confetti
+    function celebrate(){
+      const colors = ['#22d3ee','#a78bfa','#34d399','#f472b6','#f59e0b'];
+      for(let i=0;i<60;i++){
+        const s = document.createElement('div');
+        s.className='piece';
+        s.style.left = Math.random()*100+'vw';
+        s.style.background = colors[Math.floor(Math.random()*colors.length)];
+        s.style.transform = `rotate(${Math.random()*360}deg)`;
+        s.style.animationDuration = (800 + Math.random()*800)+'ms';
+        confetti.appendChild(s);
+        setTimeout(()=> s.remove(), 1600);
+      }
+    }
+    function celebrateIfMax(){
+      const ps = state[currentKey];
+      if(ps.level===5 && countDone(currentKey)===PLANTS[currentKey].steps.length){
+        celebrate();
+      }
+    }
+
+    // Events
+    [priceInput, unitInput, yieldInput, yieldUnit].forEach(el=> el.addEventListener('input', updateValue));
+    advanceBtn.addEventListener('click', ()=>{
+      const ps = state[currentKey];
+      if(ps.level<5){ ps.level++; saveState(); render(); if(ps.level===5) celebrate(); }
+    });
+    markAllBtn.addEventListener('click', ()=>{
+      const ps = state[currentKey];
+      ps.steps = ps.steps.map(()=>true);
+      ps.level = 5;
+      saveState(); render(); celebrate();
+    });
+    resetPlantBtn.addEventListener('click', ()=>{
+      if(!confirm('Reset progress for this plant?')) return;
+      state[currentKey] = defaultPlantState(currentKey);
+      saveState(); render();
+    });
+    resetAllBtn.addEventListener('click', ()=>{
+      if(!confirm('Reset all plants and values?')) return;
+      for(const k of Object.keys(PLANTS)) state[k] = defaultPlantState(k);
+      saveState(); render();
+    });
+    toggleAdvanced.addEventListener('change', ()=>{
+      document.body.classList.toggle('advanced', toggleAdvanced.checked);
+      // Placeholder for future: reveal extra pro tips if needed
+    });
+
+    // Initialize
+    (function init(){
+      // Build initial sidebar buttons
+      buildSidebar();
+      // Set defaults for units to match plants
+      render();
+    })();
+  </script>
+</body>
+</html>
