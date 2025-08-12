@@ -69,14 +69,10 @@
       display:flex; align-items:center; gap:10px; padding:10px 12px; cursor:pointer;
       background: rgba(255,255,255,.04); border:1px solid transparent; border-radius:12px;
       transition: transform .05s ease, border-color .2s ease, background .2s ease;
-      color: var(--ink); /* Ensure text is white */
+      color: var(--ink); /* Ensure all text inherits white color */
     }
     .plant-btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.16)}
     .plant-btn.active{outline:2px solid rgba(34,211,238,.35); background: linear-gradient(90deg, rgba(34,211,238,.1), rgba(167,139,250,.08))}
-    /* Specifically target plant name text to be white */
-    .plant-btn div[style*="font-weight:700"] {
-      color: white !important;
-    }
     .emoji{font-size:20px}
     .content{padding:18px}
     .title-row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
@@ -481,8 +477,8 @@
         const b = document.createElement('button');
         b.className = 'plant-btn' + (key===currentKey?' active':'');
         b.innerHTML = `<span class="emoji">${p.emoji}</span>
-                       <div style="text-align:left">
-                         <div style="font-weight:700; color:white;">${p.name}</div>
+                       <div style="text-align:left; color:var(--ink);">
+                         <div style="font-weight:700;">${p.name}</div>
                          <div class="tiny muted">Level ${state[key].level} • ${countDone(key)}/${p.steps.length} steps</div>
                        </div>`;
         b.addEventListener('click', ()=>{ currentKey = key; render(); });
@@ -596,7 +592,7 @@
       const price = parseFloat(priceInput.value||0);
       const qty = parseFloat(yieldInput.value||0);
       const val = Math.max(0, price*qty);
-      valueOut.textContent = isFinite(val) ? ' + val.toFixed(2) : '$0.00';
+      valueOut.textContent = isFinite(val) ? '$' + val.toFixed(2) : '$0.00';
       // Persist units and numbers
       ps.price = price;
       ps.unit = unitInput.value;
