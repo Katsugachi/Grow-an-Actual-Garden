@@ -1,567 +1,587 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Living Garden — Pro UI (3x3)</title>
-<style>
-  :root {
-    --bg: #0e0f12;
-    --panel: #14161b;
-    --panel-2: #1b1e25;
-    --accent: #6ae38b;
-    --accent-2: #77b7ff;
-    --warn: #ffc85c;
-    --danger: #ff6b6b;
-    --text: #e8eef2;
-    --muted: #a7b0ba;
-    --line: #21252d;
-    --shadow: 0 12px 30px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.4);
-    --radius: 12px;
-  }
-  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-  .topbar {
-    position:sticky; top:0; z-index:100;
-    display:flex; align-items:center; gap:14px;
-    padding:12px 16px; background:linear-gradient(180deg, rgba(20,22,27,0.95), rgba(20,22,27,0.6));
-    border-bottom:1px solid var(--line); backdrop-filter: blur(8px);
-  }
-  .brand { font-weight:700; letter-spacing:0.3px; }
-  .chip { padding:6px 10px; background:var(--panel-2); border:1px solid var(--line); border-radius:999px; font-size:13px; color:var(--muted); }
-  .spacer { flex:1; }
-  .controls { display:flex; align-items:center; gap:10px; }
-  .btn {
-    background:var(--panel-2); color:var(--text); border:1px solid var(--line);
-    padding:8px 12px; border-radius:10px; cursor:pointer; user-select:none; transition:all .15s ease;
-  }
-  .btn:hover { filter:brightness(1.08); transform: translateY(-1px); }
-  .btn:active { transform: translateY(0); }
-  .btn.primary { background:linear-gradient(180deg, #2a343f, #202730); border-color:#2a3541; }
-  .btn.ghost { background:transparent; }
-  .slider { width:180px; accent-color: var(--accent); }
-  .wrap { display:grid; grid-template-columns: 1fr 360px; gap:18px; padding:18px; }
-  .board {
-    background: radial-gradient(1200px 800px at 20% -20%, #1a2028, #121419);
-    border:1px solid var(--line); border-radius:var(--radius); box-shadow: var(--shadow);
-    padding:18px;
-  }
-  .grid {
-    display:grid; grid-template-columns: repeat(3, 1fr); gap:12px;
-  }
-  .tile {
-    position:relative; aspect-ratio:1/1; border-radius:10px; overflow:hidden; cursor:pointer;
-    background: linear-gradient(180deg, #2b231e, #201a16); /* dirt base */
-    border:1px solid #3a2f28; box-shadow: inset 0 4px 10px rgba(0,0,0,0.35), 0 3px 8px rgba(0,0,0,0.3);
-    transition: transform .08s ease, filter .12s ease;
-  }
-  .tile:hover { transform: translateY(-2px); filter: brightness(1.06); }
-  .tile .gloss { position:absolute; inset:0; background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0)); pointer-events:none; }
-  .tile .icon {
-    position:absolute; inset:auto; left:50%; top:50%; transform: translate(-50%, -50%);
-    font-size:34px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45));
-  }
-  .badge {
-    position:absolute; left:8px; top:8px; font-size:12px; color:var(--muted);
-    background: rgba(0,0,0,0.35); border:1px solid var(--line);
-    padding:3px 6px; border-radius:8px; backdrop-filter: blur(2px);
-  }
-  .bars { position:absolute; left:8px; right:8px; bottom:8px; display:grid; gap:6px; }
-  .bar { height:6px; background:#13161b; border:1px solid var(--line); border-radius:999px; overflow:hidden; }
-  .fill { height:100%; width:0%; background: linear-gradient(90deg, var(--accent), #7bf2b0); }
-  .bar.blue .fill { background: linear-gradient(90deg, var(--accent-2), #9ed1ff); }
-  .bar.gold .fill { background: linear-gradient(90deg, var(--warn), #ffe09b); }
-  .bar.red .fill  { background: linear-gradient(90deg, var(--danger), #ff9e9e); }
-  .tile.water  { background: linear-gradient(180deg, #1d3655, #14283f); border-color:#234566; }
-  .tile.plant  { background: linear-gradient(180deg, #2a3a2f, #1b261e); border-color:#2e4936; }
-  .tile.dead   { filter: grayscale(0.7) brightness(0.8); }
-  .side {
-    background: linear-gradient(180deg, var(--panel), #12151b); border:1px solid var(--line);
-    border-radius:var(--radius); box-shadow: var(--shadow); padding:16px; display:flex; flex-direction:column; gap:12px;
-  }
-  .side h3 { margin:2px 0 6px; font-size:16px; letter-spacing:0.3px; }
-  .pair { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--muted); font-size:13px; }
-  .stat { display:grid; gap:6px; }
-  .stat .label { font-size:12px; color:var(--muted); }
-  .input {
-    width:100%; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; color:var(--text);
-    padding:8px 10px; outline:none;
-  }
-  .tools {
-    position:sticky; bottom:0; z-index:50; margin:0 18px 18px; border-radius:14px;
-    background:linear-gradient(180deg, rgba(20,22,27,0.9), rgba(20,22,27,0.7)); border:1px solid var(--line);
-    box-shadow: var(--shadow); padding:10px; display:flex; gap:8px; flex-wrap: wrap; align-items:center;
-    backdrop-filter: blur(8px);
-  }
-  .tool {
-    display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; border:1px solid var(--line);
-    background:var(--panel-2); color:var(--text); cursor:pointer; user-select:none; transition:all .15s;
-  }
-  .tool:hover { filter:brightness(1.08); transform: translateY(-1px); }
-  .tool.active { outline: 2px solid var(--accent); background: linear-gradient(180deg, #26303a, #1d252d); }
-  .kbd {
-    font-size:11px; color:var(--muted); border:1px solid var(--line); padding:2px 6px; border-radius:6px; background:#0f1217;
-  }
-  .savebox { display:flex; gap:8px; }
-  .notice { font-size:12px; color:var(--muted); }
-  @media (max-width: 980px) { .wrap { grid-template-columns: 1fr; } }
-</style>
+  <meta charset="utf-8" />
+  <title>Grow A Garden : Real Life Edition</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0f172a;          /* slate-900 */
+      --panel:#111827;       /* gray-900 */
+      --ink:#e5e7eb;         /* gray-200 */
+      --muted:#9ca3af;       /* gray-400 */
+      --brand:#22d3ee;       /* cyan-400 */
+      --accent:#a78bfa;      /* violet-400 */
+      --ok:#34d399;          /* emerald-400 */
+      --warn:#f59e0b;        /* amber-500 */
+      --danger:#f87171;      /* red-400 */
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background: radial-gradient(1200px 700px at 10% -10%, #1f2937 0%, #0b1022 60%, #070b18 100%);
+      color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      line-height:1.55;
+    }
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,.65) 70%, rgba(15,23,42,0));
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .wrap{max-width:1200px;margin:0 auto;padding:16px 20px}
+    .hero{
+      display:flex; align-items:center; gap:16px; padding:8px 0 10px 0;
+    }
+    .logo{
+      width:44px; height:44px; border-radius:12px;
+      background: conic-gradient(from 220deg, var(--brand), var(--accent), var(--brand));
+      box-shadow: inset 0 0 30px rgba(255,255,255,.25), var(--shadow);
+      display:grid; place-items:center; font-weight:900; color:#06121a;
+    }
+    .hero h1{margin:0;font-size: clamp(18px, 2.2vw, 26px)}
+    .hero p{margin:0;color:var(--muted);font-size:14px}
+    .bar{
+      height:8px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden;
+      margin-top:10px; position:relative;
+    }
+    .bar > span{
+      display:block; height:100%; width:0%;
+      background: linear-gradient(90deg, var(--brand), var(--accent));
+      transition: width .4s ease;
+    }
+    .levels{
+      display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap
+    }
+    .pill{padding:6px 10px; border-radius:999px; background: rgba(255,255,255,.06); font-size:12px}
+    .pill.active{background: linear-gradient(90deg, rgba(34,211,238,.18), rgba(167,139,250,.18)); border:1px solid rgba(167,139,250,.35)}
+    main{max-width:1200px;margin:24px auto; padding:0 20px; display:grid; grid-template-columns: 290px 1fr; gap:20px}
+    @media (max-width: 980px){ main{grid-template-columns:1fr}}
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border:1px solid rgba(255,255,255,.08); border-radius: var(--radius); box-shadow: var(--shadow)
+    }
+    .side{padding:16px}
+    .grid{display:grid; gap:10px}
+    .plant-btn{
+      display:flex; align-items:center; gap:10px; padding:10px 12px; cursor:pointer;
+      background: rgba(255,255,255,.04); border:1px solid transparent; border-radius:12px;
+      transition: transform .05s ease, border-color .2s ease, background .2s ease;
+      color: var(--ink); /* Ensure text is white */
+    }
+    .plant-btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.16)}
+    .plant-btn.active{outline:2px solid rgba(34,211,238,.35); background: linear-gradient(90deg, rgba(34,211,238,.1), rgba(167,139,250,.08))}
+    /* Specifically target plant name text to be white */
+    .plant-btn div[style*="font-weight:700"] {
+      color: white !important;
+    }
+    .emoji{font-size:20px}
+    .content{padding:18px}
+    .title-row{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap}
+    .title-row h2{margin:0; font-size: clamp(18px,2.2vw,24px)}
+    .tag{font-size:12px; padding:6px 10px; border-radius:999px; color:#0c1a13; background: linear-gradient(90deg, #9ae6b4, #34d399)}
+    .pricebox{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px
+    }
+    .pricebox input, .pricebox select{
+      background: rgba(255,255,255,.06); color: var(--ink);
+      border:1px solid rgba(255,255,255,.12); padding:8px 10px; border-radius:10px;
+      width:auto; min-width:90px; font-size:14px;
+    }
+    .bignum{font-size:22px; font-weight:800}
+    .muted{color:var(--muted)}
+    .row{display:grid; grid-template-columns:1.2fr .8fr; gap:16px; margin-top:16px}
+    @media (max-width: 980px){ .row{grid-template-columns:1fr}}
+    .card{padding:14px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03)}
+    .card h3{margin:0 0 8px 0; font-size:16px}
+    .steps{display:grid; gap:8px}
+    details{
+      border:1px solid rgba(255,255,255,.08); border-radius:12px; overflow:hidden;
+      background: rgba(255,255,255,.02)
+    }
+    summary{
+      list-style:none; cursor:pointer; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:8px
+    }
+    summary::-webkit-details-marker{display:none}
+    .step-title{display:flex; gap:10px; align-items:center}
+    .chip{font-size:12px; padding:4px 8px; border-radius:999px; background: rgba(255,255,255,.06)}
+    .actions{display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:0 14px 14px 14px}
+    .btn{
+      padding:8px 10px; border-radius:10px; background: linear-gradient(90deg, rgba(34,211,238,.18), rgba(167,139,250,.18));
+      border:1px solid rgba(255,255,255,.14); color:var(--ink); cursor:pointer; font-weight:600
+    }
+    .btn.secondary{background: rgba(255,255,255,.05)}
+    .btn.danger{background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.3)}
+    .btn:disabled{opacity:.5; cursor:not-allowed}
+    .tiny{font-size:12px}
+    .ipm{
+      display:grid; gap:8px; margin-top:8px
+    }
+    .ipm li{margin-left:18px}
+    .good{color:var(--ok)}
+    .warn{color:var(--warn)}
+    .bad{color:var(--danger)}
+    .timeline{
+      display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; margin-top:12px
+    }
+    .node{
+      background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+      padding:10px; border-radius:12px; text-align:center; font-size:12px
+    }
+    .node.active{background: linear-gradient(180deg, rgba(34,211,238,.18), rgba(167,139,250,.18)); border-color: rgba(167,139,250,.45)}
+    .hint{font-size:12px; color:var(--muted)}
+    .footer{
+      padding:14px; text-align:center; color:var(--muted); font-size:12px
+    }
+    .confetti{
+      position: fixed; inset:0; pointer-events:none; z-index:9999; overflow:hidden;
+    }
+    .piece{
+      position:absolute; width:10px; height:18px; opacity:.9;
+      animation: fall 1200ms cubic-bezier(.2,.6,.2,1) forwards;
+    }
+    @keyframes fall{
+      0% { transform: translateY(-10vh) rotate(0deg) }
+      100% { transform: translateY(100vh) rotate(720deg) }
+    }
+    .toolbar{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px
+    }
+    .switch{ display:inline-flex; align-items:center; gap:8px }
+    .switch input{ appearance:none; width:38px; height:22px; background: rgba(255,255,255,.2); border-radius:999px; position:relative; outline:none; cursor:pointer; transition: .2s }
+    .switch input:checked{ background: linear-gradient(90deg, rgba(34,211,238,.6), rgba(167,139,250,.6)) }
+    .switch input::after{
+      content:""; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%;
+      background:#0b1022; transition: .2s
+    }
+    .switch input:checked::after{ left:19px }
+  </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="brand">Living Garden</div>
-    <div class="chip" id="clock">Day 1, 06:00</div>
-    <div class="chip" id="speedLabel">Speed: 1×</div>
-    <div class="spacer"></div>
-    <div class="controls">
-      <button class="btn primary" id="btnPlay">Pause</button>
-      <input class="slider" id="speed" type="range" min="0" max="8" step="1" value="1" title="Time speed">
-      <button class="btn ghost" id="btnStep">Step 1h</button>
-      <button class="btn" id="btnSave">Save</button>
-      <button class="btn" id="btnLoad">Load</button>
+
+  <header>
+    <div class="wrap">
+      <div class="hero">
+        <div class="logo">🌱</div>
+        <div style="flex:1">
+          <h1>Grow Mastery: From seed to harvest</h1>
+          <p>Interactive, level-based guide for Potatoes, Cauliflower, Broccoli, Radish, and Lettuce.</p>
+          <div class="bar" aria-label="Overall progress">
+            <span id="overallBar"></span>
+          </div>
+          <div class="levels" id="overallLevels">
+            <span class="pill">Level 1: Seed</span>
+            <span class="pill">Level 2: Establish</span>
+            <span class="pill">Level 3: Grow</span>
+            <span class="pill">Level 4: Bulk/Head</span>
+            <span class="pill">Level 5: Harvest</span>
+          </div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="switch">
+          <label class="tiny muted">Show advanced tips</label>
+          <input id="toggleAdvanced" type="checkbox" />
+        </div>
+        <button class="btn secondary tiny" id="resetAll">Reset all progress</button>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <div class="wrap">
-    <div class="board">
-      <div class="grid" id="grid"></div>
-    </div>
-
-    <aside class="side">
-      <h3>Tile status</h3>
-      <div class="pair"><div>Selected:</div><div id="selName">None</div></div>
-      <div class="pair"><div>Kind:</div><div id="selKind">—</div></div>
-      <div class="pair"><div>Stage:</div><div id="selStage">—</div></div>
-
-      <div class="stat">
-        <div class="label">Health</div>
-        <div class="bar" id="bHealth"><div class="fill" style="width:0%"></div></div>
+  <main>
+    <!-- LEFT: Plant selector -->
+    <aside class="panel side">
+      <h3 style="margin-top:0">Pick your plant</h3>
+      <div class="grid" id="plantList">
+        <!-- buttons injected by JS -->
       </div>
-      <div class="stat">
-        <div class="label">Moisture</div>
-        <div class="bar blue" id="bMoist"><div class="fill" style="width:0%"></div></div>
-      </div>
-      <div class="stat">
-        <div class="label">Nutrients</div>
-        <div class="bar gold" id="bNutr"><div class="fill" style="width:0%"></div></div>
-      </div>
-      <div class="stat">
-        <div class="label">Pests</div>
-        <div class="bar red" id="bPest"><div class="fill" style="width:0%"></div></div>
-      </div>
-      <div class="stat">
-        <div class="label">pH (5–8 optimal ~6.5)</div>
-        <div class="bar" id="bPH"><div class="fill" style="width:0%"></div></div>
-      </div>
-
-      <input id="nameEdit" class="input" placeholder="Rename plant…" />
-      <div class="notice">Hotkeys: 1–6 tools • Space play/pause • ,/. slower/faster</div>
-
-      <h3>Save / load</h3>
-      <div class="savebox">
-        <input id="saveCode" class="input" placeholder="Save code" />
-        <button class="btn" id="btnCopy">Copy</button>
-      </div>
-      <div class="savebox">
-        <input id="loadCode" class="input" placeholder="Paste save code" />
-        <button class="btn" id="btnPaste">Load code</button>
+      <div class="card" style="margin-top:14px">
+        <h3>Quick tip</h3>
+        <p class="hint">Track each step. When a plant hits Level 5, you'll see a celebration and the value you grew.</p>
       </div>
     </aside>
-  </div>
 
-  <div class="tools" id="tools"></div>
+    <!-- RIGHT: Content -->
+    <section class="panel content">
+      <div class="title-row">
+        <h2 id="plantTitle">Plant</h2>
+        <span class="tag" id="levelTag">Level 1: Seed</span>
+      </div>
 
-<script>
-(function(){
-  // ===== Model =====
-  const SAVE_KEY = "lg_pro_3x3_v1";
-  const SIZE = 3; // 3x3 patch
-  const TICK_MS = 250; // base tick
-  const HOUR_PER_TICK_AT_1X = 0.25; // 15 min per tick at 1×
+      <div class="timeline" id="timeline">
+        <!-- nodes injected -->
+      </div>
 
-  const Tools = [
-    { id:"plant", name:"Plant", icon:"🌱", k:"1" },
-    { id:"water", name:"Water", icon:"💧", k:"2" },
-    { id:"fert",  name:"Fertilize", icon:"🧪", k:"3" },
-    { id:"pest",  name:"Pesticide", icon:"🪲", k:"4" },
-    { id:"prune", name:"Prune", icon:"✂️", k:"5" },
-    { id:"remove",name:"Remove", icon:"🗑️", k:"6" },
-  ];
+      <div class="pricebox">
+        <span class="muted tiny">Market value (editable):</span>
+        <input type="number" id="priceInput" step="0.01" min="0" />
+        <select id="unitInput">
+          <option value="per head">per head</option>
+          <option value="per bunch">per bunch</option>
+          <option value="per kg">per kg</option>
+        </select>
+        <div class="muted tiny">Estimated yield:</div>
+        <input type="number" id="yieldInput" step="0.1" min="0" />
+        <select id="yieldUnit">
+          <option value="heads">heads</option>
+          <option value="bunches">bunches</option>
+          <option value="kg">kg</option>
+        </select>
+        <div class="bignum" id="valueOut">$0.00</div>
+      </div>
 
-  let state = blankState();
-  let selected = 0; // index 0..8
-  let tool = "plant";
-  let playing = true;
-  let speed = 1; // 0..8
+      <div class="row">
+        <div class="card">
+          <h3>Step-by-step path</h3>
+          <div class="steps" id="steps">
+            <!-- steps injected -->
+          </div>
+        </div>
+        <div class="card">
+          <h3>Care snapshots</h3>
+          <div id="careBox">
+            <!-- care bullets injected -->
+          </div>
+          <hr style="border:0;border-top:1px solid rgba(255,255,255,.08);margin:12px 0" />
+          <h3>Integrated pest management</h3>
+          <ul class="ipm" id="ipm">
+            <!-- ipm list injected -->
+          </ul>
+          <p class="hint">If chemical controls are legally permitted where you live, always follow label directions and local guidelines. Prefer non-chemical methods first and rotate crops to reduce pressure.</p>
+        </div>
+      </div>
 
-  function blankTile() {
-    return {
-      kind: "dirt",
-      name: "Empty soil",
-      stage: "—",
-      health: 0,       // 0..1 (plants only)
-      moisture: 0.35,  // 0..1
-      nutrients: 0.35, // 0..1
-      pests: 0.00,     // 0..1 (higher is worse)
-      ph: 6.5,         // ~5..8
-      growth: 0.00,    // 0..1 (plants only)
-      dead: false
+      <div class="actions" style="margin-top:12px">
+        <button class="btn" id="advance">Advance to next level</button>
+        <button class="btn secondary" id="markAll">Mark all steps complete</button>
+        <button class="btn danger" id="resetPlant">Reset this plant</button>
+        <span class="hint" id="progressHint">0/5 steps complete</span>
+      </div>
+
+      <div class="footer">
+        Designed as a single-file, interactive guide. Your progress is saved in your browser.
+      </div>
+    </section>
+  </main>
+
+  <div class="confetti" id="confetti"></div>
+
+  <script>
+    // Data model (concise, gamified, safe)
+    const PLANTS = {
+      potatoes: {
+        name: "Potatoes",
+        emoji: "🥔",
+        defaultPrice: 3.00,
+        defaultUnit: "per kg",
+        defaultYield: 2.0,
+        defaultYieldUnit: "kg",
+        care: [
+          {label:"Sun", text:"Full sun (6–8h)"},
+          {label:"Soil", text:"Loose, fertile, drains well; pH 5.8–6.5"},
+          {label:"Water", text:"~2.5 cm/week; steady moisture during bulking"},
+          {label:"Nutrition", text:"Compost at planting; light side-dress mid-season"},
+          {label:"Bed", text:"Hilled rows or mounds 20–25 cm high"}
+        ],
+        ipm: [
+          "Scout weekly; remove damaged foliage and hand-pick beetles/larvae.",
+          "Mulch to buffer soil moisture and reduce splash-borne disease.",
+          "Rotate nightshades (avoid planting in same bed within 3 years).",
+          "Space plants and water at soil level for good airflow.",
+          "For severe outbreaks, consult local guidance for approved controls."
+        ],
+        steps: [
+          {title:"Seed prep", body:"Use certified seed tubers. Cut large ones into chunks with 1–2 eyes; cure 1–2 days."},
+          {title:"Plant & mound", body:"Plant 8–10 cm deep, eyes up; 30 cm apart. Form mounds, 75 cm between rows."},
+          {title:"Hill & weed", body:"Hill when stems reach ~15 cm; repeat at ~30 cm. Hand-weed weekly."},
+          {title:"Even moisture", body:"Keep soil evenly moist. Avoid water stress during tuber bulking."},
+          {title:"Harvest & cure", body:"Lift new potatoes early; for storage, wait till tops die back, then cure in cool dark."}
+        ]
+      },
+      cauliflower: {
+        name: "Cauliflower",
+        emoji: "🥦", // close enough icon
+        defaultPrice: 3.50,
+        defaultUnit: "per head",
+        defaultYield: 1,
+        defaultYieldUnit: "heads",
+        care: [
+          {label:"Sun", text:"Full sun; steady cool temps preferred"},
+          {label:"Soil", text:"Rich, well-drained; pH 6.2–7.0"},
+          {label:"Water", text:"Consistent moisture; avoid stress to prevent buttoning"},
+          {label:"Nutrition", text:"Balanced feeding; side-dress mid-season"},
+          {label:"Tip", text:"Blanch by tying outer leaves over curd"}
+        ],
+        ipm: [
+          "Row covers to exclude caterpillars early.",
+          "Hand-pick caterpillars; encourage birds/beneficials.",
+          "Remove debris; rotate brassicas every 2–3 years.",
+          "Water at soil level; increase airflow.",
+          "Seek local-approved controls only if needed."
+        ],
+        steps: [
+          {title:"Start & harden", body:"Start seedlings; harden off 7 days."},
+          {title:"Transplant", body:"Space ~45 × 45 cm; water in well."},
+          {title:"Feed & mulch", body:"Side-dress; mulch to keep roots cool."},
+          {title:"Blanching", body:"When heads 7–10 cm, tie leaves to cover curd."},
+          {title:"Harvest", body:"Cut firm, full-size heads before loosening."}
+        ]
+      },
+      broccoli: {
+        name: "Broccoli",
+        emoji: "🥦",
+        defaultPrice: 2.50,
+        defaultUnit: "per head",
+        defaultYield: 1.4,
+        defaultYieldUnit: "heads",
+        care: [
+          {label:"Sun", text:"6–8h/day"},
+          {label:"Soil", text:"Fertile, pH 6.2–7.0"},
+          {label:"Water", text:"2–3 cm/week; steady moisture"},
+          {label:"Nutrition", text:"Nitrogen-forward feeding in cool growth"},
+          {label:"Tip", text:"After main head, harvest side shoots for weeks"}
+        ],
+        ipm: [
+          "Use floating row covers to limit flea beetles/caterpillars.",
+          "Hand-pick larvae; inspect undersides of leaves.",
+          "Keep spacing generous; water at soil level.",
+          "Rotate brassicas; clear residues post-harvest.",
+          "Consult local, label-approved controls only if necessary."
+        ],
+        steps: [
+          {title:"Seed or seedlings", body:"Start indoors or direct-sow in cool weather."},
+          {title:"Transplant & space", body:"~50 × 50 cm, firm soil, water in."},
+          {title:"Feed & mulch", body:"Side-dress and mulch to hold moisture."},
+          {title:"Main head timing", body:"Cut when tight buds; morning harvest."},
+          {title:"Side shoots", body:"Keep picking side shoots to extend yield."}
+        ]
+      },
+      radish: {
+        name: "Radish",
+        emoji: "🥗",
+        defaultPrice: 1.50,
+        defaultUnit: "per bunch",
+        defaultYield: 2,
+        defaultYieldUnit: "bunches",
+        care: [
+          {label:"Sun", text:"Sun to part shade"},
+          {label:"Soil", text:"Fine tilth; stones removed"},
+          {label:"Water", text:"Even moisture to prevent pithiness"},
+          {label:"Spacing", text:"Thin promptly to 5 cm"},
+          {label:"Speed", text:"Ready in ~25–35 days"}
+        ],
+        ipm: [
+          "Use row covers to block root maggot flies.",
+          "Thin early; remove stressed plants.",
+          "Rotate with non-brassicas.",
+          "Water consistently; avoid overwatering before harvest.",
+          "Consult local guidance if pressure persists."
+        ],
+        steps: [
+          {title:"Prepare seedbed", body:"Rake to fine tilth; moisten soil."},
+          {title:"Sow shallow", body:"1 cm deep, rows ~15 cm apart."},
+          {title:"Thin seedlings", body:"Thin to ~5 cm to size up roots."},
+          {title:"Keep moist", body:"Steady moisture for crisp roots."},
+          {title:"Harvest", body:"Pull at 2–3 cm diameter before pithy."}
+        ]
+      },
+      lettuce: {
+        name: "Lettuce",
+        emoji: "🥬",
+        defaultPrice: 2.00,
+        defaultUnit: "per head",
+        defaultYield: 3,
+        defaultYieldUnit: "heads",
+        care: [
+          {label:"Sun", text:"Cool sun; partial shade in heat"},
+          {label:"Soil", text:"Rich, loose; plenty of organic matter"},
+          {label:"Water", text:"Keep consistently moist; shallow roots"},
+          {label:"Bolting", text:"Provide shade/choose slow-bolt varieties"},
+          {label:"Harvest", text:"Cut heads or pick outer leaves"}
+        ],
+        ipm: [
+          "Water mornings; avoid wet foliage overnight.",
+          "Hand-pick slugs; use barriers and habitat management.",
+          "Encourage beneficial insects; avoid overfertilizing.",
+          "Rotate; remove debris promptly.",
+          "Consult local-approved options only if needed."
+        ],
+        steps: [
+          {title:"Sow or transplant", body:"Direct-seed or set seedlings in cool conditions."},
+          {title:"Space & mulch", body:"~20 × 20 cm; mulch to keep soil cool."},
+          {title:"Moisture", body:"Even watering to avoid bitterness."},
+          {title:"Leaf harvest", body:"Harvest outer leaves as they mature."},
+          {title:"Head harvest", body:"Cut entire heads when firm and full."}
+        ]
+      }
     };
-  }
-  function blankState() {
-    const tiles = Array.from({length:SIZE*SIZE}, blankTile);
-    return { day:1, hour:6, tiles, rng: Math.random()*1e9|0 };
-  }
 
-  // ===== RNG (stable) =====
-  function mulberry32(a) { return function() { var t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; } }
-  let rnd = mulberry32(state.rng);
+    // UI elements
+    const plantList = document.getElementById('plantList');
+    const plantTitle = document.getElementById('plantTitle');
+    const levelTag = document.getElementById('levelTag');
+    const stepsEl = document.getElementById('steps');
+    const careBox = document.getElementById('careBox');
+    const ipmBox = document.getElementById('ipm');
+    const priceInput = document.getElementById('priceInput');
+    const unitInput = document.getElementById('unitInput');
+    const yieldInput = document.getElementById('yieldInput');
+    const yieldUnit = document.getElementById('yieldUnit');
+    const valueOut = document.getElementById('valueOut');
+    const timeline = document.getElementById('timeline');
+    const advanceBtn = document.getElementById('advance');
+    const markAllBtn = document.getElementById('markAll');
+    const resetPlantBtn = document.getElementById('resetPlant');
+    const resetAllBtn = document.getElementById('resetAll');
+    const progressHint = document.getElementById('progressHint');
+    const toggleAdvanced = document.getElementById('toggleAdvanced');
+    const overallBar = document.getElementById('overallBar');
+    const overallLevels = document.getElementById('overallLevels');
+    const confetti = document.getElementById('confetti');
 
-  // ===== Encoding =====
-  function encodeSave(obj) { const json = JSON.stringify(obj); return btoa(unescape(encodeURIComponent(json))); }
-  function decodeSave(code) { const json = decodeURIComponent(escape(atob(code))); return JSON.parse(json); }
+    // State
+    let currentKey = 'potatoes';
+    const LS_KEY = 'grow-mastery-v1';
+    let state = loadState();
 
-  // ===== Time =====
-  let timer = setInterval(loop, TICK_MS);
-
-  function loop() {
-    if (playing && speed > 0) {
-      const h = HOUR_PER_TICK_AT_1X * speed;
-      advanceTime(h);
-      tick(h);
-      render();
+    function defaultPlantState(key){
+      const p = PLANTS[key];
+      return {
+        level: 1,
+        steps: Array(p.steps.length).fill(false),
+        price: p.defaultPrice,
+        unit: p.defaultUnit,
+        yld: p.defaultYield,
+        yUnit: p.defaultYieldUnit
+      };
     }
-  }
-  function advanceTime(h) {
-    state.hour += h;
-    while (state.hour >= 24) { state.hour -= 24; state.day++; }
-  }
 
-  // ===== Simulation (gentle, readable) =====
-  function tick(hours) {
-    const tiles = state.tiles;
-    for (let i=0;i<tiles.length;i++) {
-      const t = tiles[i];
-
-      // environment drift
-      t.moisture = clamp01(t.moisture - 0.01 * hours);
-      t.nutrients = clamp01(t.nutrients - 0.004 * hours);
-      t.pests = clamp01(t.pests + 0.006 * hours * (t.kind === "plant" ? 1.0 : 0.5));
-
-      // plants live
-      if (t.kind === "plant" && !t.dead) {
-        // growth factors
-        const moistOk = comfort(t.moisture, 0.55, 0.25);
-        const nutrOk  = comfort(t.nutrients, 0.5, 0.35);
-        const phOk    = comfortNorm(t.ph, 6.5, 1.2);
-        const pestHit = 1 - clamp01(t.pests * 1.2);
-
-        const growthRate = 0.02 * hours * moistOk * nutrOk * phOk * pestHit;
-        t.growth = clamp01(t.growth + growthRate);
-
-        // health trends
-        const stress = (1 - moistOk)*0.5 + (1 - nutrOk)*0.3 + (1 - phOk)*0.2 + (t.pests)*0.6;
-        const heal = (moistOk*0.3 + nutrOk*0.3 + phOk*0.2) * (1 - t.pests*0.5);
-        t.health = clamp01(t.health + (heal - stress) * 0.02 * hours);
-
-        // stage milestones
-        t.stage = t.dead ? "Dead"
-                 : t.growth < 0.33 ? "Seedling"
-                 : t.growth < 0.66 ? "Young"
-                 : t.growth < 0.99 ? "Mature"
-                 : "Bloom";
-
-        if (t.health <= 0.01 && t.growth > 0.1) t.dead = true;
-      } else if (t.kind !== "plant") {
-        t.health = 0; t.growth = 0; t.dead = false; t.stage = "—";
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        const obj = raw ? JSON.parse(raw) : {};
+        for(const k of Object.keys(PLANTS)){
+          if(!obj[k]) obj[k] = defaultPlantState(k);
+        }
+        return obj;
+      }catch(e){
+        const obj = {};
+        for(const k of Object.keys(PLANTS)) obj[k] = defaultPlantState(k);
+        return obj;
       }
     }
-  }
+    function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
-  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
-  function comfort(x, center, halfspan) {
-    const d = Math.abs(x - center);
-    return clamp01(1 - d / halfspan); // 1 at center, 0 at edges
-  }
-  function comfortNorm(x, center, span) {
-    const d = Math.abs(x - center) / span;
-    return clamp01(1 - d); // 1 at center, 0 at center±span
-  }
-
-  // ===== Actions =====
-  function applyTool(idx) {
-    const t = state.tiles[idx];
-    switch (tool) {
-      case "plant":
-        if (t.kind === "dirt" || t.kind === "dead") {
-          Object.assign(t, blankTile(), {
-            kind:"plant", name: randomPlantName(),
-            health: 0.65, growth: 0.05, moisture: Math.max(t.moisture, 0.5),
-            nutrients: Math.max(t.nutrients, 0.45), pests: 0.0, ph: 6.5, dead:false
-          });
-        }
-        break;
-      case "water":
-        t.moisture = clamp01(t.moisture + 0.35);
-        t.ph = clamp(t.ph - 0.1, 5.0, 8.5);
-        if (t.kind === "plant") t.health = clamp01(t.health + 0.04);
-        break;
-      case "fert":
-        t.nutrients = clamp01(t.nutrients + 0.4);
-        t.ph = clamp(t.ph + 0.05, 5.0, 8.5);
-        if (t.kind === "plant") t.health = clamp01(t.health + 0.03);
-        break;
-      case "pest":
-        t.pests = clamp01(t.pests - 0.5);
-        if (t.kind === "plant") t.health = clamp01(t.health + 0.02);
-        break;
-      case "prune":
-        if (t.kind === "plant" && !t.dead) {
-          t.growth = Math.max(0, t.growth - 0.05);
-          t.health = clamp01(t.health + 0.06);
-          t.pests = clamp01(t.pests - 0.1);
-        }
-        break;
-      case "remove":
-        Object.assign(t, blankTile());
-        t.kind = "dirt"; t.name = "Empty soil";
-        break;
+    // Build plant selector
+    function buildSidebar(){
+      plantList.innerHTML = '';
+      Object.entries(PLANTS).forEach(([key, p])=>{
+        const b = document.createElement('button');
+        b.className = 'plant-btn' + (key===currentKey?' active':'');
+        b.innerHTML = `<span class="emoji">${p.emoji}</span>
+                       <div style="text-align:left">
+                         <div style="font-weight:700; color:white;">${p.name}</div>
+                         <div class="tiny muted">Level ${state[key].level} • ${countDone(key)}/${p.steps.length} steps</div>
+                       </div>`;
+        b.addEventListener('click', ()=>{ currentKey = key; render(); });
+        plantList.appendChild(b);
+      });
     }
-    render();
-  }
-  function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
 
-  function randomPlantName() {
-    const A = ["Green", "Soft", "Little", "Sweet", "Bright", "Velvet", "Silver", "Golden"];
-    const B = ["Sprout", "Fern", "Lily", "Mint", "Bloom", "Thyme", "Ivy", "Daisy"];
-    return A[(rnd()*A.length)|0] + " " + B[(rnd()*B.length)|0];
-  }
-
-  // ===== UI =====
-  const gridEl = document.getElementById('grid');
-  const clockEl = document.getElementById('clock');
-  const speedEl = document.getElementById('speed');
-  const speedLabel = document.getElementById('speedLabel');
-  const btnPlay = document.getElementById('btnPlay');
-  const btnStep = document.getElementById('btnStep');
-
-  const selName = document.getElementById('selName');
-  const selKind = document.getElementById('selKind');
-  const selStage = document.getElementById('selStage');
-  const bHealth = document.querySelector('#bHealth .fill');
-  const bMoist  = document.querySelector('#bMoist .fill');
-  const bNutr   = document.querySelector('#bNutr .fill');
-  const bPest   = document.querySelector('#bPest .fill');
-  const bPH     = document.querySelector('#bPH .fill');
-  const nameEdit = document.getElementById('nameEdit');
-
-  const toolsEl = document.getElementById('tools');
-  const btnSave = document.getElementById('btnSave');
-  const btnLoad = document.getElementById('btnLoad');
-  const saveCodeEl = document.getElementById('saveCode');
-  const loadCodeEl = document.getElementById('loadCode');
-  const btnCopy = document.getElementById('btnCopy');
-  const btnPaste = document.getElementById('btnPaste');
-
-  // Build grid
-  function buildGrid() {
-    gridEl.innerHTML = "";
-    for (let i=0;i<SIZE*SIZE;i++) {
-      const tile = document.createElement('div');
-      tile.className = "tile";
-      tile.dataset.idx = i;
-      tile.innerHTML = `
-        <div class="badge" data-badge></div>
-        <div class="icon" data-icon>🪵</div>
-        <div class="gloss"></div>
-        <div class="bars">
-          <div class="bar"><div class="fill" data-h style="width:0%"></div></div>
-          <div class="bar blue"><div class="fill" data-m style="width:0%"></div></div>
-          <div class="bar gold"><div class="fill" data-n style="width:0%"></div></div>
-          <div class="bar red"><div class="fill" data-p style="width:0%"></div></div>
-        </div>`;
-      tile.addEventListener('click', onTileClick);
-      gridEl.appendChild(tile);
+    function countDone(key){
+      return state[key].steps.filter(Boolean).length;
     }
-  }
 
-  function onTileClick(e) {
-    const idx = +e.currentTarget.dataset.idx;
-    selected = idx;
-    applyTool(idx);
-    render();
-  }
+    function levelFromSteps(key){
+      const done = countDone(key);
+      // 5 steps = 5 levels (1 per step)
+      return Math.min(5, Math.max(1, done + 1));
+    }
 
-  // Build tools
-  function buildTools() {
-    toolsEl.innerHTML = "";
-    Tools.forEach(t => {
-      const b = document.createElement('div');
-      b.className = "tool";
-      b.dataset.id = t.id;
-      b.innerHTML = `<span>${t.icon}</span><span>${t.name}</span><span class="kbd">${t.k}</span>`;
-      b.addEventListener('click', () => { setTool(t.id); });
-      toolsEl.appendChild(b);
-    });
-    setTool(tool);
-  }
+    function updateOverall(){
+      const keys = Object.keys(PLANTS);
+      const totalLevels = keys.reduce((acc,k)=> acc + state[k].level, 0);
+      const pct = (totalLevels - keys.length) / (4*keys.length); // 1..5 -> 0..1
+      overallBar.style.width = (pct*100).toFixed(1) + '%';
 
-  function setTool(id) {
-    tool = id;
-    [...toolsEl.children].forEach(b => b.classList.toggle('active', b.dataset.id === id));
-  }
+      // Highlight overall levels roughly by average
+      const avgLevel = Math.round(totalLevels / keys.length);
+      [...overallLevels.children].forEach((pill,i)=>{
+        pill.classList.toggle('active', (i+1)<=avgLevel);
+      });
+    }
 
-  // Render
-  function render() {
-    updateClock();
-    const tiles = state.tiles;
-    for (let i=0;i<tiles.length;i++) {
-      const t = tiles[i];
-      const el = gridEl.children[i];
-      const badge = el.querySelector('[data-badge]');
-      const icon = el.querySelector('[data-icon]');
-      const fh = el.querySelector('[data-h]');
-      const fm = el.querySelector('[data-m]');
-      const fn = el.querySelector('[data-n]');
-      const fp = el.querySelector('[data-p]');
-
-      el.classList.toggle('plant', t.kind === "plant");
-      el.classList.toggle('water', t.kind === "water");
-      el.classList.toggle('dead', t.dead);
-
-      // badge: name or soil
-      badge.textContent = t.kind === "plant" ? (t.name || "Plant") : "Soil";
-
-      // icon
-      let ico = "🪵";
-      if (t.kind === "plant") {
-        if (t.dead) ico = "☠️";
-        else if (t.stage === "Seedling") ico = "🌱";
-        else if (t.stage === "Young") ico = "🌿";
-        else if (t.stage === "Mature") ico = "🌳";
-        else if (t.stage === "Bloom") ico = "🌸";
-      } else {
-        ico = "🪵";
+    function render(){
+      buildSidebar();
+      const p = PLANTS[currentKey];
+      const ps = state[currentKey];
+      plantTitle.textContent = `${p.emoji} ${p.name}`;
+      // timeline
+      timeline.innerHTML = '';
+      const labels = ["Seed","Establish","Grow","Bulk/Head","Harvest"];
+      for(let i=0;i<5;i++){
+        const d = document.createElement('div');
+        d.className = 'node' + ((i+1)<=ps.level ? ' active':'');
+        d.innerHTML = `<div style="font-weight:700">Level ${i+1}</div><div class="tiny muted">${labels[i]}</div>`;
+        timeline.appendChild(d);
       }
-      icon.textContent = ico;
-
-      // bars
-      fh.style.width = pct(t.health);
-      fm.style.width = pct(t.moisture);
-      fn.style.width = pct(t.nutrients);
-      fp.style.width = pct(t.pests);
-
-      // subtle cues for out-of-range pH by hue shift of health bar
-      const phScore = comfortNorm(t.ph, 6.5, 1.2);
-      const hHue = 120 * phScore; // 0=red, 120=green by pH fit
-      fh.style.background = `linear-gradient(90deg, hsl(${hHue} 70% 60%), hsl(${Math.max(40,hHue)} 70% 70%))`;
-
-      // selection outline via box-shadow
-      el.style.outline = (i===selected) ? "2px solid var(--accent)" : "none";
-    }
-
-    // status panel
-    const s = state.tiles[selected];
-    selName.textContent = s ? s.name : "None";
-    selKind.textContent = s ? (s.kind[0].toUpperCase()+s.kind.slice(1)) : "—";
-    selStage.textContent = s ? s.stage : "—";
-    bHealth.style.width = pct(s.health);
-    bMoist.style.width  = pct(s.moisture);
-    bNutr.style.width   = pct(s.nutrients);
-    bPest.style.width   = pct(s.pests);
-    const phFit = comfortNorm(s.ph, 6.5, 1.5);
-    bPH.style.width = pct(phFit);
-
-    nameEdit.value = s && s.kind === "plant" ? s.name : "";
-    nameEdit.disabled = !(s && s.kind === "plant");
-  }
-
-  function pct(x){ return Math.round(clamp01(x)*100) + "%"; }
-
-  function updateClock() {
-    const hh = Math.floor(state.hour);
-    const mm = Math.floor((state.hour - hh) * 60);
-    const pad = n => String(n).padStart(2,'0');
-    clockEl.textContent = `Day ${state.day}, ${pad(hh)}:${pad(mm)}`;
-    speedLabel.textContent = `Speed: ${speed}×`;
-    btnPlay.textContent = playing ? "Pause" : "Play";
-  }
-
-  // ===== Events =====
-  btnPlay.addEventListener('click', () => { playing = !playing; render(); });
-  speedEl.addEventListener('input', () => { speed = +speedEl.value; render(); });
-  btnStep.addEventListener('click', () => { advanceTime(1); tick(1); render(); });
-
-  nameEdit.addEventListener('input', () => {
-    const s = state.tiles[selected];
-    if (s && s.kind === "plant") s.name = nameEdit.value;
-  });
-
-  window.addEventListener('keydown', e => {
-    const k = e.key.toLowerCase();
-    if (k === ' ') { e.preventDefault(); playing = !playing; render(); return; }
-    if (k === ',' ) { speed = Math.max(0, speed-1); speedEl.value = speed; render(); return; }
-    if (k === '.' ) { speed = Math.min(8, speed+1); speedEl.value = speed; render(); return; }
-    const map = { '1':'plant','2':'water','3':'fert','4':'pest','5':'prune','6':'remove' };
-    if (map[k]) setTool(map[k]);
-  });
-
-  // ===== Save / Load =====
-  function saveToLocal() {
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-      saveCodeEl.value = encodeSave(state);
-      flash("Saved");
-    } catch { flash("Save failed"); }
-  }
-  function loadFromLocal() {
-    try {
-      const s = localStorage.getItem(SAVE_KEY);
-      if (!s) return flash("No save");
-      adoptState(JSON.parse(s));
-      flash("Loaded");
-    } catch { flash("Load failed"); }
-  }
-  function adoptState(obj) {
-    state = obj;
-    rnd = mulberry32(state.rng || (Math.random()*1e9|0));
-    render();
-  }
-  function loadFromCode(code) {
-    try { adoptState(decodeSave(code)); flash("Loaded from code"); }
-    catch { flash("Invalid code"); }
-  }
-
-  btnSave.addEventListener('click', saveToLocal);
-  btnLoad.addEventListener('click', loadFromLocal);
-  btnCopy.addEventListener('click', () => {
-    const code = encodeSave(state); saveCodeEl.value = code;
-    navigator.clipboard?.writeText(code); flash("Copied");
-  });
-  btnPaste.addEventListener('click', () => {
-    const code = loadCodeEl.value.trim();
-    if (code) loadFromCode(code);
-  });
-
-  // ===== UX helpers =====
-  let flashTimer = null;
-  function flash(msg) {
-    const n = document.createElement('div');
-    n.textContent = msg;
-    Object.assign(n.style, {
-      position:'fixed', left:'50%', top:'16px', transform:'translateX(-50%)',
-      background:'rgba(0,0,0,0.7)', border:'1px solid var(--line)', color:'var(--text)',
-      padding:'8px 12px', borderRadius:'10px', zIndex:9999, boxShadow:'var(--shadow)'
-    });
-    document.body.appendChild(n);
-    clearTimeout(flashTimer); flashTimer = setTimeout(()=>n.remove(), 900);
-  }
-
-  // ===== Boot =====
-  buildGrid();
-  buildTools();
-  render();
-
-})();
-</script>
-</body>
-</html>
+      // steps accordion
+      stepsEl.innerHTML = '';
+      p.steps.forEach((s, idx)=>{
+        const done = ps.steps[idx];
+        const details = document.createElement('details');
+        details.open = idx===0;
+        const check = done ? '✅' : '🔲';
+        details.innerHTML = `
+          <summary>
+            <div class="step-title">
+              <span>${check}</span>
+              <strong>${idx+1}. ${s.title}</strong>
+              <span class="chip tiny muted">Level ${idx+1}</span>
+            </div>
+            <span class="tiny ${done?'good':'muted'}">${done?'Done':'To do'}</span>
+          </summary>
+          <div style="padding: 0 14px 12px 14px; color: var(--ink)">${s.body}</div>
+          <div class="actions">
+            <button class="btn" data-action="toggle" data-idx="${idx}">${done?'Mark not done':'Mark done'}</button>
+          </div>
+        `;
+        details.addEventListener('click', (e)=>{
+          const btn = e.target.closest('button[data-action="toggle"]');
+          if(btn){
+            e.preventDefault();
+            const i = +btn.dataset.idx;
+            ps.steps[i] = !ps.steps[i];
+            ps.level = levelFromSteps(currentKey);
+            saveState(); render(); celebrateIfMax();
+          }
+        });
+        stepsEl.appendChild(details);
+      });
+      // care
+      careBox.innerHTML = '';
+      p.care.forEach(c=>{
+        const row = document.createElement('div');
+        row.style.marginBottom = '6px';
+        row.innerHTML = `<span class="chip">${c.label}</span> <span class="muted">•</span> ${c.text}`;
+        careBox.appendChild(row);
+      });
+      // ipm
+      ipmBox.innerHTML = '';
+      p.ipm.forEach(txt=>{
+        const li = document.createElement('li');
+        li.textContent = txt;
+        ipmBox.appendChild(li);
+      });
+      // price/yield
+      priceInput.value = ps.price;
+      unitInput.value = ps.unit;
+      yieldInput.value = ps.yld;
+      yieldUnit.value = ps.yUnit;
+      updateValue();
+      // labels
+      const lvl = ps.level;
+      const tagLabel = ["Seed","Establish","Grow","Bulk/Head","Harvest"][lvl-1];
+      levelTag.textContent = `Level ${lvl}: ${tagLabel}`;
